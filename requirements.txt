@@ -1,0 +1,6 @@
+tornado
+logzero
+pyaudio>=0.2.11
+qrcode>=6.0
+Pillow>=5.3.0
+pyzmq>=17.1
