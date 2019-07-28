@@ -1,14 +1,17 @@
 # coding: utf-8
 #
 import argparse
+import sys
 import threading
 
 import pyaudio
-
 import zmq
 from logzero import logger
 
-CHUNK = 1024
+import settings
+import web
+
+CHUNK = 4096
 
 
 def create_publisher():
@@ -29,34 +32,54 @@ def get_input_device(p: pyaudio.PyAudio):
         'defaultHighOutputLatency': 0.1, 
         'defaultSampleRate': 44100.0}
     """
-    return_info = None
+    device_info = None
     for idx in range(p.get_device_count()):
         info = p.get_device_info_by_index(idx)
         channels = info["maxInputChannels"]
         if channels == 0:
             continue
-        return_info = info
-    return return_info
+        if info['name'] == 'iShowU Audio Capture':
+            device_info = info
+            break
+    if not device_info:
+        sys.exit("Missing iShowU Audio Capture")
+    return device_info
 
 
 def main():
     p = pyaudio.PyAudio()
     info = get_input_device(p)
-    channels = info["maxInputChannels"]
+    audio_settings = settings.AUDIO
+    audio_settings["channels"] = channels = info["maxInputChannels"]
+    audio_settings["sampleRate"] = sample_rate = 44100
     logger.info("Device: %s, channels: %d", info['name'], channels)
+
     stream = p.open(
         input_device_index=info['index'],
         format=pyaudio.paInt16,
         channels=channels,
-        rate=44100,
+        rate=sample_rate,
         input=True,
         frames_per_buffer=CHUNK)
 
     sock = create_publisher()
-    while True:
-        chunk = stream.read(CHUNK)
-        sock.send(chunk)
-        print(".", end="")
+
+    def pipe_pcm_stream(stream, sock):
+        while True:
+            chunk = stream.read(CHUNK)
+            sock.send(chunk)
+
+    th = threading.Thread(
+        name="pcmstream", target=pipe_pcm_stream, args=(stream, sock))
+    th.daemon = True
+    th.start()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="enable debug mode")
+    args = parser.parse_args()
+
+    web.run_web(7000, debug=args.debug)
 
 
 if __name__ == "__main__":

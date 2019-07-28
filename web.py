@@ -8,10 +8,12 @@ import qrcode
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-from tornado import locks
 import zmq
-from zmq.eventloop.future import Context
 from logzero import logger
+from tornado import locks
+from zmq.eventloop.future import Context
+
+import settings
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -21,9 +23,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 class AudioParamsHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write({"encoding": '16bitInt',
-                    "channels": 2,
-                    "sampleRate": 44100})
+        self.write(settings.AUDIO)
 
 
 class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
@@ -36,19 +36,22 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
 
         self.sock = sock
         self._stopped = False
-        logger.debug("pipe audio message")
+        logger.debug("client connected: %s", self.request.host)
         tornado.ioloop.IOLoop.current().spawn_callback(self.pipe_message)
 
     async def pipe_message(self):
         while not self._stopped:
-            self.write_message(await self.sock.recv(), binary=True)
+            try:
+                self.write_message(await self.sock.recv(), binary=True)
+            except tornado.websocket.WebSocketClosedError:
+                break
         logger.debug("pipe message stopped")
 
     def on_message(self, message):
         logger.debug("receive message: %s", message)
 
     def on_close(self):
-        logger.info("closed")
+        logger.info("client disconnected: %s", self.request.host)
         self._stopped = True
 
 
@@ -81,7 +84,10 @@ def run_web(port: int, **settings):
     if os.isatty(sys.stdout.fileno()):
         qr.print_ascii(tty=True)
     app.listen(port)
-    tornado.ioloop.IOLoop.instance().start()
+    try:
+        tornado.ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        tornado.ioloop.IOLoop.instance().stop()
 
 
 if __name__ == "__main__":

@@ -10,22 +10,83 @@
 
 <body>
     <h1>AudioWire 1.0</h1>
+    <div id="app">
+        <ul>
+            <li>sampleRate: {{!opts.sampleRate}}</li>
+            <li>channels: {{!opts.channels}}</li>
+        </ul>
+        <div v-if="!player">
+            <button @click="play">播放</button>
+        </div>
+        <div v-else>
+            <img src="{{static_url('favicon.ico')}}">
+            播放中 ...
+            <button @click="stop">停止</button>
+        </div>
+    </div>
     <script src='{{static_url("jquery.min.js")}}'></script>
     <script src='{{static_url("pcm-player.js")}}'></script>
+    <script src='{{static_url("vue.js")}}'></script>
     <script>
-        var socketURL = `ws://${location.host}/audio/websocket`;
-        var player = new PCMPlayer({
-            encoding: '16bitInt',
-            channels: 1,
-            sampleRate: 44100,
-            flushingTime: 50
-        });
-        var ws = new WebSocket(socketURL);
-        ws.binaryType = 'arraybuffer';
-        ws.addEventListener('message', function (event) {
-            var data = new Uint8Array(event.data);
-            player.feed(data);
-        });
+        new Vue({
+            el: "#app",
+            data: {
+                opts: {},
+                player: null,
+                ws: null,
+            },
+            mounted() {
+                $.getJSON("/audio").then(ret => {
+                    this.opts = Object.assign(ret, { flushingTime: 20 })
+                    console.log(this.opts)
+                })
+            },
+            methods: {
+                play() {
+                    const socketURL = `ws://${location.host}/audio/websocket`;
+                    this.player = new PCMPlayer(this.opts)
+                    let ws = new WebSocket(socketURL);
+                    ws.binaryType = 'arraybuffer';
+                    ws.addEventListener('message', (event) => {
+                        const data = new Uint8Array(event.data);
+                        this.player.feed(data);
+                    });
+                    this.ws = ws;
+                },
+                stop() {
+                    if (this.player) {
+                        this.ws.close()
+                        this.player.destroy()
+                        this.player = null;
+                    }
+                }
+            }
+        })
+        function play() {
+            $.getJSON("/audio").then(ret => {
+                let opts = Object.assign(ret, { flushingTime: 20 })
+                console.log(opts)
+
+                var socketURL = `ws://${location.host}/audio/websocket`;
+                var player = new PCMPlayer(opts)
+                var ws = new WebSocket(socketURL);
+                ws.binaryType = 'arraybuffer';
+                ws.addEventListener('message', function (event) {
+                    var data = new Uint8Array(event.data);
+                    player.feed(data);
+                });
+            })
+        }
+
+        function stop() {
+
+        }
+        //     encoding: '16bitInt',
+        //     channels: 1,
+        //     sampleRate: 44100,
+        //     flushingTime: 50
+        // });
+
 
     </script>
 </body>
