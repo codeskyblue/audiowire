@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
     <title>WeUI</title>
     <!-- 引入 WeUI -->
     <link rel="stylesheet" href="path/to/weui/dist/style/weui.min.css" />
@@ -12,6 +14,12 @@
 <body>
     <!-- 使用 -->
     <a href="javascript:;" class="weui-btn weui-btn_primary">绿色按钮</a>
+    <script>
+        // disable user-scale
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+    </script>
 </body>
 
 </html>

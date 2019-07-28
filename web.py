@@ -56,6 +56,11 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
         self._stopped = True
 
 
+class WeUI(tornado.web.RequestHandler):
+    def get(self):
+        self.render("weui.html")
+
+
 def make_app(**settings):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     settings["static_path"] = os.path.join(current_dir, "static")
@@ -65,6 +70,7 @@ def make_app(**settings):
         (r"/", MainHandler),
         (r"/audio", AudioParamsHandler),
         (r"/audio/websocket", AudioWebSocketHandler),
+        (r"/weui", WeUI),
     ], **settings)
 
 

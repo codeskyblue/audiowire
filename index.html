@@ -61,6 +61,12 @@
     <script src='{{static_url("vue.js")}}'></script>
     <script src='{{static_url("bootstrap-4.0.0-dist/js/bootstrap.min.js")}}'></script>
     <script>
+        // Disable zooming on mobile safari
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+    </script>
+    <script>
         new Vue({
             el: "#app",
             data: {
