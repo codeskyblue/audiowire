@@ -44,15 +44,15 @@
         </div>
         <hr>
         主机: <span class="number" v-text="location.host"></span>
-        <div v-if="playing">
+        <div>
             <ul class="ul-clean">
                 <li>设备: <span class="number" style="font-weight: 100" v-text="opts.name"></span></li>
                 <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
                 <li>通道: <span class="number" v-text="opts.channels"></span></li>
             </ul>
-            <div class="text-center">
-                <img class="rounded" src="{{static_url('favicon.ico')}}">
-            </div>
+        </div>
+        <div v-if="playing" class="text-center">
+            <img class="rounded" src="{{static_url('favicon.ico')}}">
         </div>
         <div v-text="message" class="color-red"></div>
     </div>
@@ -69,17 +69,15 @@
                 playing: false,
                 message: "",
             },
+            mounted() {
+                $.getJSON("/audio").then(ret => {
+                    this.opts = Object.assign(ret, { flushingTime: 20 })
+                })
+            },
             methods: {
                 play() {
-                    $.getJSON("/audio").then(ret => {
-                        this.opts = Object.assign(ret, { flushingTime: 20 })
-                        return this.opts
-                    }).then((opts) => {
-                        this.message = ""
-                        this.playWebSocket(opts)
-                    }, (err) => {
-                        this.message = "server disconnected"
-                    })
+                    this.message = ""
+                    this.playWebSocket(this.opts)
                 },
                 playWebSocket(opts) {
                     const socketURL = `ws://${location.host}/audio/websocket`;
@@ -91,7 +89,6 @@
                     ws.addEventListener('message', (event) => {
                         const data = new Uint8Array(event.data);
                         this.player.feed(data);
-                        // console.log("feed")
                     });
                     ws.onopen = (event) => {
                         this.playing = true

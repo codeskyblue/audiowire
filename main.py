@@ -38,6 +38,7 @@ def get_input_device(p: pyaudio.PyAudio, name: str):
         channels = info["maxInputChannels"]
         if channels == 0:
             continue
+        logger.debug("device name: %s", info['name'])
         if info['name'] == name:
             device_info = info
             break
