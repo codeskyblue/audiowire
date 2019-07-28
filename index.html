@@ -15,7 +15,7 @@
             <li>sampleRate: {{!opts.sampleRate}}</li>
             <li>channels: {{!opts.channels}}</li>
         </ul>
-        <div v-if="!player">
+        <div v-if="!playing">
             <button @click="play">播放</button>
         </div>
         <div v-else>
@@ -33,7 +33,7 @@
             data: {
                 opts: {},
                 player: null,
-                ws: null,
+                playing: false,
             },
             mounted() {
                 $.getJSON("/audio").then(ret => {
@@ -46,18 +46,24 @@
                     const socketURL = `ws://${location.host}/audio/websocket`;
                     this.player = new PCMPlayer(this.opts)
                     let ws = new WebSocket(socketURL);
+
                     ws.binaryType = 'arraybuffer';
                     ws.addEventListener('message', (event) => {
                         const data = new Uint8Array(event.data);
                         this.player.feed(data);
                     });
+                    ws.onopen = (event) => {
+                        this.playing = true
+                    }
+                    ws.onclose = (event) => {
+                        this.playing = false
+                        this.player.destroy()
+                    }
                     this.ws = ws;
                 },
                 stop() {
-                    if (this.player) {
+                    if (this.playing) {
                         this.ws.close()
-                        this.player.destroy()
-                        this.player = null;
                     }
                 }
             }
