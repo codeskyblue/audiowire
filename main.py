@@ -14,10 +14,10 @@ import web
 CHUNK = 4096
 
 
-def create_publisher():
+def create_publisher(port: int = 5555):
     context = zmq.Context()
     sock = context.socket(zmq.PUB)
-    sock.bind("tcp://*:5555")
+    sock.bind("tcp://*:"+str(port))
     return sock
 
 
@@ -47,6 +47,13 @@ def get_input_device(p: pyaudio.PyAudio):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="enable debug mode")
+    parser.add_argument("--zmq-port", type=int,
+                        default=5566, help="zmq listen port")
+    args = parser.parse_args()
+
     p = pyaudio.PyAudio()
     info = get_input_device(p)
     audio_settings = settings.AUDIO
@@ -62,22 +69,17 @@ def main():
         input=True,
         frames_per_buffer=CHUNK)
 
-    sock = create_publisher()
+    settings.ZMQ_PORT = args.zmq_port
+    sock = create_publisher(settings.ZMQ_PORT)
 
     def pipe_pcm_stream(stream, sock):
         while True:
             chunk = stream.read(CHUNK)
             sock.send(chunk)
 
-    th = threading.Thread(
-        name="pcmstream", target=pipe_pcm_stream, args=(stream, sock))
-    th.daemon = True
-    th.start()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="enable debug mode")
-    args = parser.parse_args()
+    threading.Thread(
+        name="pcmstream", daemon=True,
+        target=pipe_pcm_stream, args=(stream, sock)).start()
 
     web.run_web(7000, debug=args.debug)
 

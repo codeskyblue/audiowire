@@ -31,7 +31,7 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
         context = Context()
         sock = context.socket(zmq.SUB)
         sock.setsockopt(zmq.CONFLATE, 1)
-        sock.connect("tcp://localhost:5555")
+        sock.connect("tcp://localhost:{}".format(settings.ZMQ_PORT))
         sock.subscribe(b'')
 
         self.sock = sock
@@ -45,6 +45,7 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
                 self.write_message(await self.sock.recv(), binary=True)
             except tornado.websocket.WebSocketClosedError:
                 break
+        self.sock.close()
         logger.debug("pipe message stopped")
 
     def on_message(self, message):

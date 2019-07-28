@@ -3,30 +3,62 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
     <title>AudioWire</title>
+    <link rel="stylesheet" href='{{static_url("bootstrap-4.0.0-dist/css/bootstrap.min.css")}}'>
+    <style>
+        .color-red {
+            color: red;
+        }
+
+        .ul-clean {
+            padding-left: 0px;
+        }
+
+        .ul-clean>li {
+            list-style-type: none;
+        }
+
+        .number {
+            font-family: 'Courier New', Courier, monospace
+        }
+    </style>
 </head>
 
 <body>
-    <h1>AudioWire 1.0</h1>
-    <div id="app">
-        <ul>
-            <li>sampleRate: {{!opts.sampleRate}}</li>
-            <li>channels: {{!opts.channels}}</li>
-        </ul>
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="javascript:void(0);">
+            <img src="/static/favicon.ico" width="30" height="30" class="d-inline-block align-top" alt="">
+            AudioWire <small>1.1</small>
+        </a>
+    </nav>
+
+    <div id="app" class="container" style="padding-top: 15px">
         <div v-if="!playing">
-            <button @click="play">播放</button>
+            <button type="button" class="btn btn-info form-control" @click="play">播放</button>
         </div>
         <div v-else>
-            <img src="{{static_url('favicon.ico')}}">
-            播放中 ...
-            <button @click="stop">停止</button>
+            <button type="button" class="btn btn-dark form-control" @click="stop">停止</button>
         </div>
+        <hr>
+        主机: <span class="number" v-text="location.host"></span>
+        <div v-if="playing">
+            <ul class="ul-clean">
+                <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
+                <li>通道: <span class="number" v-text="opts.channels"></span></li>
+            </ul>
+            <div class="text-center">
+                <img class="rounded" src="{{static_url('favicon.ico')}}">
+            </div>
+        </div>
+        <div v-text="message" class="color-red"></div>
     </div>
     <script src='{{static_url("jquery.min.js")}}'></script>
     <script src='{{static_url("pcm-player.js")}}'></script>
     <script src='{{static_url("vue.js")}}'></script>
+    <script src='{{static_url("bootstrap-4.0.0-dist/js/bootstrap.min.js")}}'></script>
     <script>
         new Vue({
             el: "#app",
@@ -34,23 +66,31 @@
                 opts: {},
                 player: null,
                 playing: false,
-            },
-            mounted() {
-                $.getJSON("/audio").then(ret => {
-                    this.opts = Object.assign(ret, { flushingTime: 20 })
-                    console.log(this.opts)
-                })
+                message: "",
             },
             methods: {
                 play() {
+                    $.getJSON("/audio").then(ret => {
+                        this.opts = Object.assign(ret, { flushingTime: 20 })
+                        return this.opts
+                    }).then((opts) => {
+                        this.message = ""
+                        this.playWebSocket(opts)
+                    }, (err) => {
+                        this.message = "server disconnected"
+                    })
+                },
+                playWebSocket(opts) {
                     const socketURL = `ws://${location.host}/audio/websocket`;
-                    this.player = new PCMPlayer(this.opts)
+                    this.player = new PCMPlayer(opts)
                     let ws = new WebSocket(socketURL);
+                    this.ws = ws;
 
                     ws.binaryType = 'arraybuffer';
                     ws.addEventListener('message', (event) => {
                         const data = new Uint8Array(event.data);
                         this.player.feed(data);
+                        // console.log("feed")
                     });
                     ws.onopen = (event) => {
                         this.playing = true
@@ -59,41 +99,19 @@
                         this.playing = false
                         this.player.destroy()
                     }
-                    this.ws = ws;
                 },
                 stop() {
                     if (this.playing) {
                         this.ws.close()
                     }
                 }
+            },
+            computed: {
+                location() {
+                    return window.location
+                }
             }
         })
-        function play() {
-            $.getJSON("/audio").then(ret => {
-                let opts = Object.assign(ret, { flushingTime: 20 })
-                console.log(opts)
-
-                var socketURL = `ws://${location.host}/audio/websocket`;
-                var player = new PCMPlayer(opts)
-                var ws = new WebSocket(socketURL);
-                ws.binaryType = 'arraybuffer';
-                ws.addEventListener('message', function (event) {
-                    var data = new Uint8Array(event.data);
-                    player.feed(data);
-                });
-            })
-        }
-
-        function stop() {
-
-        }
-        //     encoding: '16bitInt',
-        //     channels: 1,
-        //     sampleRate: 44100,
-        //     flushingTime: 50
-        // });
-
-
     </script>
 </body>
 
