@@ -46,6 +46,7 @@
         主机: <span class="number" v-text="location.host"></span>
         <div v-if="playing">
             <ul class="ul-clean">
+                <li>设备: <span class="number" style="font-weight: 100" v-text="opts.name"></span></li>
                 <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
                 <li>通道: <span class="number" v-text="opts.channels"></span></li>
             </ul>

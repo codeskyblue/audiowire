@@ -21,7 +21,7 @@ def create_publisher(port: int = 5555):
     return sock
 
 
-def get_input_device(p: pyaudio.PyAudio):
+def get_input_device(p: pyaudio.PyAudio, name: str):
     """
     Returns Example:
         {'index': 1, 'structVersion': 2, 'name': 'MacBook Pro麦克风', 
@@ -38,9 +38,11 @@ def get_input_device(p: pyaudio.PyAudio):
         channels = info["maxInputChannels"]
         if channels == 0:
             continue
-        if info['name'] == 'iShowU Audio Capture':
+        if info['name'] == name:
             device_info = info
             break
+        device_info = info
+
     if not device_info:
         sys.exit("Missing iShowU Audio Capture")
     return device_info
@@ -52,13 +54,16 @@ def main():
                         help="enable debug mode")
     parser.add_argument("--zmq-port", type=int,
                         default=5566, help="zmq listen port")
+    parser.add_argument(
+        "--device-name", default="iShowU Audio Capture", help="audio output device name")
     args = parser.parse_args()
 
     p = pyaudio.PyAudio()
-    info = get_input_device(p)
+    info = get_input_device(p, args.device_name)
     audio_settings = settings.AUDIO
     audio_settings["channels"] = channels = info["maxInputChannels"]
     audio_settings["sampleRate"] = sample_rate = 44100
+    audio_settings["name"] = info["name"]
     logger.info("Device: %s, channels: %d", info['name'], channels)
 
     stream = p.open(
@@ -81,6 +86,8 @@ def main():
         name="pcmstream", daemon=True,
         target=pipe_pcm_stream, args=(stream, sock)).start()
 
+    import pprint
+    pprint.pprint(settings.AUDIO)
     web.run_web(7000, debug=args.debug)
 
 
