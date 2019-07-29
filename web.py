@@ -36,7 +36,7 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
 
         self.sock = sock
         self._stopped = False
-        logger.debug("client connected: %s", self.request.host)
+        logger.debug("client connected: %s", self.request.remote_ip)
         tornado.ioloop.IOLoop.current().spawn_callback(self.pipe_message)
 
     async def pipe_message(self):
@@ -52,7 +52,7 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
         logger.debug("receive message: %s", message)
 
     def on_close(self):
-        logger.info("client disconnected: %s", self.request.host)
+        logger.info("client disconnected: %s", self.request.remote_ip)
         self._stopped = True
 
 
