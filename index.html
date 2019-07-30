@@ -49,6 +49,7 @@
                 <li>设备: <span class="number" style="font-weight: 100" v-text="opts.name"></span></li>
                 <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
                 <li>通道: <span class="number" v-text="opts.channels"></span></li>
+                <li>延迟: <span class="number" v-text="delay"></span> ms</li>
             </ul>
         </div>
         <div v-if="playing" class="text-center">
@@ -57,7 +58,7 @@
         <div v-text="message" class="color-red"></div>
     </div>
     <script src='{{static_url("jquery.min.js")}}'></script>
-    <script src='{{static_url("pcm-player.js")}}'></script>
+    <script src='{{static_url("pcmplayer2.js")}}'></script>
     <script src='{{static_url("vue.js")}}'></script>
     <script src='{{static_url("bootstrap-4.0.0-dist/js/bootstrap.min.js")}}'></script>
     <script>
@@ -74,15 +75,21 @@
                 player: null,
                 playing: false,
                 message: "",
+                delay: 0,
+                maxDelay: 500, // ms
+                interval: null,
             },
             mounted() {
                 $.getJSON("/audio").then(ret => {
-                    this.opts = Object.assign(ret, { flushingTime: 20 })
+                    this.opts = Object.assign({}, ret, { maxDelay: this.maxDelay })
                 })
             },
             methods: {
                 play() {
                     this.message = ""
+                    this.interval = setInterval(() => {
+                        this.delay = Math.floor(this.player.delay)
+                    }, 500)
                     this.playWebSocket(this.opts)
                 },
                 playWebSocket(opts) {
@@ -107,6 +114,7 @@
                 stop() {
                     if (this.playing) {
                         this.ws.close()
+                        clearInterval(this.interval)
                     }
                 }
             },
