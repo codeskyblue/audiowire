@@ -120,7 +120,9 @@ PCMPlayer.prototype.flush = function () {
     // if (this.startTime > this.audioCtx.currentTime + this.bufferringTime*2) {
     // this.startTime = this.audioCtx.currentTime;
     // }
-    // console.log('start vs current '+this.startTime+' vs '+this.audioCtx.currentTime+' duration: '+audioBuffer.duration);
+    let delay = this.startTime + audioBuffer.duration - this.audioCtx.currentTime;
+    console.log("delay", delay * 1000, "ms", "duration", audioBuffer.duration * 1000, "ms");
+    // console.log('start vs current ' + this.startTime + ' vs ' + this.audioCtx.currentTime + ' duration: ' + audioBuffer.duration);
     bufferSource.buffer = audioBuffer;
     bufferSource.connect(this.gainNode);
     bufferSource.start(this.startTime);
