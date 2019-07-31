@@ -31,8 +31,8 @@ Use your phone the scan the QRCode showing in the terminal.
 
 # Thanks
 - https://people.csail.mit.edu/hubert/pyaudio/
-- http://www.tornadoweb.org
 - https://github.com/samirkumardas/pcm-player
+- https://github.com/joewalnes/reconnecting-websocket
 - 解决iOS Safari不能听声音的问题 https://stackoverflow.com/questions/46363048/onaudioprocess-not-called-on-ios11/46534088#46534088
 - iShowU Audio Capture https://support.shinywhitebox.com/hc/en-us/articles/204161459-Installing-iShowU-Audio-Capture
 

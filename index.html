@@ -49,7 +49,9 @@
                 <li>设备: <span class="number" style="font-weight: 100" v-text="opts.name"></span></li>
                 <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
                 <li>通道: <span class="number" v-text="opts.channels"></span></li>
-                <li>延迟: <span class="number" v-text="delay"></span> ms</li>
+                <li>延迟: <span class="number" v-text="delay"></span> ms &lt; <span class="number"
+                        v-text="maxDelay"></span>
+                    <a v-show="playing" href="javascript:;" @click="ws.refresh()">重连</a></li>
             </ul>
         </div>
         <div v-if="playing" class="text-center">
@@ -60,6 +62,7 @@
     <script src='{{static_url("jquery.min.js")}}'></script>
     <script src='{{static_url("pcmplayer2.js")}}'></script>
     <script src='{{static_url("vue.js")}}'></script>
+    <script src='{{static_url("reconnecting-websocket.js")}}'></script>
     <script src='{{static_url("bootstrap-4.0.0-dist/js/bootstrap.min.js")}}'></script>
     <script>
         // Disable zooming on mobile safari
@@ -75,41 +78,53 @@
                 player: null,
                 playing: false,
                 message: "",
-                delay: 0,
-                maxDelay: 500, // ms
+                delay: 0, // ms
+                maxDelay: 400, // milliseconds
                 interval: null,
+                ws: null,
             },
             mounted() {
                 $.getJSON("/audio").then(ret => {
-                    this.opts = Object.assign({}, ret, { maxDelay: this.maxDelay })
+                    this.opts = Object.assign({}, ret, { maxDelay: this.maxDelay / 1000 })
                 })
             },
             methods: {
                 play() {
                     this.message = ""
                     this.interval = setInterval(() => {
-                        this.delay = Math.floor(this.player.delay)
+                        this.delay = Math.floor(this.player.delay * 1000)
                     }, 500)
                     this.playWebSocket(this.opts)
                 },
                 playWebSocket(opts) {
                     const socketURL = `ws://${location.host}/audio/websocket`;
                     this.player = new PCMPlayer(opts)
-                    let ws = new WebSocket(socketURL);
+
+                    let ws = new ReconnectingWebSocket(socketURL, null, {
+                        binaryType: "arraybuffer",
+                        maxReconnectAttempts: 5,
+                    });
                     this.ws = ws;
 
-                    ws.binaryType = 'arraybuffer';
+                    ws.onopen = (event) => {
+                        this.playing = true
+                        console.log("websocket connected")
+                    }
+
                     ws.addEventListener('message', (event) => {
                         const data = new Uint8Array(event.data);
                         this.player.feed(data);
                     });
-                    ws.onopen = (event) => {
-                        this.playing = true
-                    }
-                    ws.onclose = (event) => {
+
+                    ws.addEventListener("close", (event) => {
+                        console.log("websocket closed")
+                    })
+
+                    ws.addEventListener("destroy", (event) => {
                         this.playing = false
                         this.player.destroy()
-                    }
+                        console.log("ReconnectingWebSocket closed")
+                    })
                 },
                 stop() {
                     if (this.playing) {
