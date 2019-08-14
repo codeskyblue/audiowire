@@ -1,6 +1,9 @@
 language: python
 python:
 - '3.6'
+before_install:
+- sudo apt-get install -y libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+- sudo apt-get install -y ffmpeg libav-tools
 script: echo skip test
 deploy:
   skip_existing: true
