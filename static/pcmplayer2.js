@@ -61,12 +61,23 @@ PCMPlayer.prototype.feed = function (data) {
         audioData,
         channel,
         offset,
-        i;
+        i,
+        decrement;
+
     for (channel = 0; channel < this.option.channels; channel++) {
         audioData = audioBuffer.getChannelData(channel);
         offset = channel;
+        decrement = 50;
         for (i = 0; i < length; i++) {
             audioData[i] = data[offset];
+            /* fadein */
+            if (i < 50) {
+                audioData[i] = (audioData[i] * i) / 50;
+            }
+            /* fadeout*/
+            if (i >= (length - 51)) {
+                audioData[i] = (audioData[i] * decrement--) / 50;
+            }
             offset += this.option.channels;
         }
     }
