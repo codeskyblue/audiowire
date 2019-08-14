@@ -1,0 +1,13 @@
+language: python
+python:
+- '3.6'
+deploy:
+  skip_existing: true
+  provider: pypi
+  user: codeskyblue
+  password:
+    secure: Z8B9uG5xPwq4Hsj5bkFpu5WBv8Um6uW8vIG3aIMyD10I5pzlTPcQ66JmhyJ53H5GDYBVqxZhdVo7ae7w8rXz55vHMC3Fl0kaD8UlSllF4EWCEnAf+p02t04UPjd/7ey/+vMWVVx+hsVy+9qNNUY/d20Dac8xg4RyuOzHgfJTNcaxyFC7O+ejGThejHh+7M0vRFzM9EzUP6RT45EVQxJfXorxyuVkKGWYpoDORfdvjtc+nlpVOz0fO/br3b2ifVc7d/YoQ1SNc1y9YBcwyO3PerRpn6CgbIuTxi5MkpQX7YUdlkteP4xi8J1zdhdwTQYY1/YrdS7bCEvi94W0UvdnGxXOTB0AUCyKcdUmWWJTGLTFs+FbH/586XRW2K9LV7d4pxKp2ZLvTd58YEz1IwCAH7bKp4ETLQZdn6Rm9ELKYOhDLoxWrJlMKKhqbdEw/EFQCYpcbdp/wskXBy6WyQhhyQnWH98SrmwDEiyzS8KHRwbUf+Ehju5RIKVv9qaOHfnOndo/JwnJXOuobc2Jjoqckmve85EGP1cDGzX50t7mHkhDMlf0TEaKV5FIZ1QhzpX6zwCN2r5xKChTav+iv/trTZr4gRtpv2/s9WyO9O7BO534G4KRpzAReiH9BsrtQ1rDSr/4OH7d/CAclv9bb6Uz5c12Tbec2f6aMiGCv//CGKc=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: codeskyblue/audiowire
