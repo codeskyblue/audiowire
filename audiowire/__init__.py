@@ -18,7 +18,7 @@ CHUNK = 1024
 def create_publisher(port: int = 5555):
     context = zmq.Context()
     sock = context.socket(zmq.PUB)
-    sock.bind("tcp://*:"+str(port))
+    sock.bind("tcp://*:" + str(port))
     return sock
 
 
@@ -48,17 +48,15 @@ def get_input_device(p: pyaudio.PyAudio, name: str):
     return device_info
 
 
-def pipe_pcm_stream(p: pyaudio.PyAudio,
-                    input_device_index: int, channels: int, sample_rate: int,
-                    sock):
+def pipe_pcm_stream(p: pyaudio.PyAudio, input_device_index: int, channels: int,
+                    sample_rate: int, sock):
     while True:
-        stream = p.open(
-            input_device_index=input_device_index,
-            format=pyaudio.paInt16,
-            channels=channels,
-            rate=sample_rate,
-            input=True,
-            frames_per_buffer=CHUNK)
+        stream = p.open(input_device_index=input_device_index,
+                        format=pyaudio.paInt16,
+                        channels=channels,
+                        rate=sample_rate,
+                        input=True,
+                        frames_per_buffer=CHUNK)
 
         try:
             while True:
@@ -73,16 +71,27 @@ def pipe_pcm_stream(p: pyaudio.PyAudio,
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-d", "--debug", action="store_true",
+    parser.add_argument("-d",
+                        "--debug",
+                        action="store_true",
                         help="enable debug mode")
-    parser.add_argument("--zmq-port", type=int,
-                        default=5566, help="zmq listen port")
-    parser.add_argument(
-        "--device-name", default="iShowU Audio Capture", help="audio output device name")
-    parser.add_argument("-p", "--port", type=int,
-                        default=7000, help="listen port")
-    parser.add_argument("-r", "--rate", type=int,
-                        default=44100, help="sample rate")
+    parser.add_argument("--zmq-port",
+                        type=int,
+                        default=5566,
+                        help="zmq listen port")
+    parser.add_argument("--device-name",
+                        default="iShowU Audio Capture",
+                        help="audio output device name")
+    parser.add_argument("-p",
+                        "--port",
+                        type=int,
+                        default=7000,
+                        help="listen port")
+    parser.add_argument("-r",
+                        "--rate",
+                        type=int,
+                        default=44100,
+                        help="sample rate")
     args = parser.parse_args()
 
     p = pyaudio.PyAudio()
@@ -96,10 +105,11 @@ def main():
     settings.ZMQ_PORT = args.zmq_port
     sock = create_publisher(settings.ZMQ_PORT)
 
-    threading.Thread(
-        name="pcmstream", daemon=True,
-        target=pipe_pcm_stream,
-        args=(p, info['index'], channels, sample_rate, sock)).start()
+    threading.Thread(name="pcmstream",
+                     daemon=True,
+                     target=pipe_pcm_stream,
+                     args=(p, info['index'], channels, sample_rate,
+                           sock)).start()
 
     import pprint
     pprint.pprint(settings.AUDIO)
