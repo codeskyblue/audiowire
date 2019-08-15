@@ -9,8 +9,8 @@ import pyaudio
 import zmq
 from logzero import logger
 
-import settings
-import web
+from . import settings
+from . import web
 
 CHUNK = 1024
 

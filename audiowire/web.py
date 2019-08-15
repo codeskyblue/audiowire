@@ -13,7 +13,7 @@ from logzero import logger
 from tornado import locks
 from zmq.eventloop.future import Context
 
-import settings
+from . import settings
 
 
 class MainHandler(tornado.web.RequestHandler):
