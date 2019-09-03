@@ -31,7 +31,7 @@
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="javascript:void(0);">
             <img src="/static/favicon.ico" width="30" height="30" class="d-inline-block align-top" alt="">
-            AudioWire <small>1.1</small>
+            AudioWire <small>{{version}}</small>
         </a>
     </nav>
 
@@ -64,6 +64,7 @@
     <script src='{{static_url("vue.js")}}'></script>
     <script src='{{static_url("reconnecting-websocket.js")}}'></script>
     <script src='{{static_url("bootstrap-4.0.0-dist/js/bootstrap.min.js")}}'></script>
+    <script src='{{static_url("NoSleep.js")}}'></script>
     <script>
         // Disable zooming on mobile safari
         document.addEventListener('gesturestart', function (e) {
@@ -82,6 +83,7 @@
                 maxDelay: 400, // milliseconds
                 interval: null,
                 ws: null,
+                noSleep: new NoSleep(),
             },
             mounted() {
                 $.getJSON("/audio").then(ret => {
@@ -95,6 +97,14 @@
                         this.delay = Math.floor(this.player.delay * 1000)
                     }, 500)
                     this.playWebSocket(this.opts)
+                    this.noSleep.enable()
+                },
+                stop() {
+                    if (this.playing) {
+                        this.ws.close()
+                        clearInterval(this.interval)
+                        this.noSleep.disable()
+                    }
                 },
                 playWebSocket(opts) {
                     const socketURL = `ws://${location.host}/audio/websocket`;
@@ -126,12 +136,6 @@
                         console.log("ReconnectingWebSocket closed")
                     })
                 },
-                stop() {
-                    if (this.playing) {
-                        this.ws.close()
-                        clearInterval(this.interval)
-                    }
-                }
             },
             computed: {
                 location() {

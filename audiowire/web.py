@@ -12,13 +12,16 @@ import zmq
 from logzero import logger
 from tornado import locks
 from zmq.eventloop.future import Context
+import pkg_resources
 
 from . import settings
 
 
+__version__ = pkg_resources.get_distribution("audiowire").version
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html")
+        self.render("index.html", version=__version__)
 
 
 class AudioParamsHandler(tornado.web.RequestHandler):

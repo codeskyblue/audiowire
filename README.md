@@ -41,6 +41,13 @@ pip3 install -e .
 - https://github.com/joewalnes/reconnecting-websocket
 - 解决iOS Safari不能听声音的问题 https://stackoverflow.com/questions/46363048/onaudioprocess-not-called-on-ios11/46534088#46534088
 - iShowU Audio Capture https://support.shinywhitebox.com/hc/en-us/articles/204161459-Installing-iShowU-Audio-Capture
+- 播放不锁屏 https://github.com/richtr/NoSleep.js/
+
+
+## CHANGELOG
+- 1.0.0 首个能用的版本
+- 1.0.1 修复import error
+- 1.1.0 新增播放时不锁屏的功能
 
 
 # LICENSE
