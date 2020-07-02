@@ -12,7 +12,7 @@ from logzero import logger
 from . import settings
 from . import web
 
-CHUNK = 1024
+CHUNK = 1024 * 4
 
 
 def create_publisher(port: int = 5555):
