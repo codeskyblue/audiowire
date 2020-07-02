@@ -45,7 +45,7 @@ class AudioWebSocketHandler(tornado.websocket.WebSocketHandler):
     async def pipe_message(self):
         while not self._stopped:
             try:
-                self.write_message(await self.sock.recv(), binary=True)
+                await self.write_message(await self.sock.recv(), binary=True)
             except tornado.websocket.WebSocketClosedError:
                 break
         self.sock.close()
