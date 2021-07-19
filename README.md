@@ -10,10 +10,18 @@ brew install portaudio
 pip3 install audiowire
 ```
 
+### Install virtual speaker
+
+> The iShowU Audio Capture is not free support M1 now.
+
 Install `iShowU Audio Capture` according to <https://support.shinywhitebox.com/hc/en-us/articles/204161459-Installing-iShowU-Audio-Capture>
 
 Open `System Preferences` - `Sound` - `Output`
 Select `iShowU Audio Capture`
+
+Alternative (SoundFlower) (not support M1, tested 2021/07/19)
+
+https://github.com/mattingalls/Soundflower 
 
 ## Usage
 Open terminal, type the following command.
