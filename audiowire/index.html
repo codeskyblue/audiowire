@@ -49,8 +49,7 @@
                 <li>设备: <span class="number" style="font-weight: 100" v-text="opts.name"></span></li>
                 <li>频率: <span class="number" v-text="opts.sampleRate"></span></li>
                 <li>通道: <span class="number" v-text="opts.channels"></span></li>
-                <li>延迟: <span class="number" v-text="delay"></span> ms &lt; <span class="number"
-                        v-text="maxDelay"></span>
+                <li>延迟: <span class="number" v-text="delay"></span> ms &lt; <input v-if="!playing" v-model="maxDelay"></input><span class="number" v-else v-text="maxDelay"></span>
                     <a v-show="playing" href="javascript:;" @click="ws.refresh()">重连</a></li>
             </ul>
         </div>
@@ -92,6 +91,7 @@
             },
             methods: {
                 play() {
+                    this.opts.maxDelay = this.maxDelay / 1000
                     this.message = ""
                     this.interval = setInterval(() => {
                         this.delay = Math.floor(this.player.delay * 1000)
